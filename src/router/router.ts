@@ -431,6 +431,17 @@ export const constantRoute = [
       description: '在线富文本编辑, html实时预览，在线编辑文本，文本编辑获取html',
     }
   },
+  // 金融工具
+  {
+    path: '/investmentfeecalculator',
+    component: () => import('@/components/Tools/InvestmentFeeCalculator/InvestmentFeeCalculator.vue'),
+    name: 'InvestmentFeeCalculator',
+    meta: {
+      title: "投资手续费计算器",
+      keywords: '私人投资手续费计算器',
+      description: '私人投资手续费计算器',
+    }
+  },
   // 关于
   {
     path: '/about',

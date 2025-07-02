@@ -466,6 +466,22 @@ export function getToolsCate() {
     //   ]
     // },
     {
+      id: 88,
+      title: '金融工具',
+      icon: '',
+      list: [
+        {
+          id: 1,
+          title: '投资手续费计算器',
+          logo: '/images/logo/investmentFeeCalculator.jpg',
+          desc: '私人投资手续费计算器',
+          url: '/investmentfeecalculator/',
+          cateId: 88,
+          cate: '金融工具'
+        },
+      ]
+    },
+    {
       id: 7,
       title: '其他工具',
       icon: '',
@@ -525,7 +541,7 @@ export function toolsList() {
 
 /**
  * url为键名的工具list map
- * @returns 
+ * @returns
  */
 export function urlKeyMap() {
   // let toolsMapByUrlKey = new Map()
@@ -554,7 +570,7 @@ export function getTools(data: ToolsReqData) {
   //分类筛选
   if (cateId > 0) {
     list = list.filter(item => {
-      return item.cateId == cateId;  
+      return item.cateId == cateId;
     });
   }
   return list

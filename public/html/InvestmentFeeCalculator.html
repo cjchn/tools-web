@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资手续费计算器</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; width: 80%; margin: 2% auto; padding: 20px; background-color: #f5f5f5; }
+        .container { width: 100%; max-width: none; min-width: 300px; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 20px; }
+        .content-wrapper { display: flex; flex-direction: row; gap: 20px; width: 100%; }
+        .input-section, .output-section { flex: 1; padding: 20px; border-radius: 5px; }
+        .input-section { background-color: #f9f9f9; }
+        .output-section { background-color: #f0f0f0; }
+        h1 { color: #2196F3; font-size: 2em; text-align: center; margin-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #2196F3; font-size: 1.2em; }
+        .radio-label { color: #555; font-size: 1em; }
+        .radio-group { display: flex; gap: 20px; flex-wrap: nowrap; align-items: center; }
+        .radio-label { display: flex; align-items: center; margin-right: 15px; white-space: nowrap; }
+        input, select { width: 90%; padding: 10px; margin-left: 0; border: 1px solid #ddd; }
+        .multiplier-buttons button { width: 100px; padding: 8px 16px; background-color: #727272; }
+        button { width: 93%;  background-color: #4CAF50; color: white; border: none; padding: 12px 20px; border-radius: 5px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background-color: #45a049; }
+        .results { margin-top: 30px; padding: 20px; border-top: 2px solid #eee; }
+        .result-item { margin-bottom: 10px; }
+        .result-label { font-weight: bold; display: inline-block; width: 120px; }
+        .fee-details { margin-top: 20px; padding: 15px; background-color: #f9f9f9; border-radius: 5px; }
+        h2 { color: #444; margin-bottom: 15px; font-size: 18px; }
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .result-table th, .result-table td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        .result-table th { background-color: #f2f2f2; font-weight: bold; }
+        .section-header { background-color: #e0e0e0; font-weight: bold; text-align: center; padding: 8px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+<!--        <h1>投资手续费计算器</h1>-->
+        <div class="content-wrapper">
+            <div class="input-section">
+                <div class="form-group">
+                    <label>投资种类</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="investmentType" value="etf" checked> ETF
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="investmentType" value="stock"> 股票
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="investmentType" value="bond"> 国债逆回购
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="param1">参数1 (单价/年化利率)</label>
+                    <input type="number" id="param1" step="any" required value="" onchange="formatDecimal(this)" min="0">
+                    <div class="multiplier-buttons">
+                        <button type="button" onclick="multiplyParam1(0.01)">x0.01</button>
+                        <button type="button" onclick="multiplyParam1(0.001)">x0.001</button>
+                        <button type="button" onclick="addParam1(0.001)">+0.001</button>
+                        <button type="button" onclick="addParam1(-0.001)">-0.001</button>
+                        <button type="button" onclick="addParam1(0.01)">+0.01</button>
+                        <button type="button" onclick="addParam1(-0.01)">-0.01</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="param2">参数2 (份额/参与金额)</label>
+                    <input type="number" id="param2" step="any" required value="" onchange="formatDecimal(this)" min="0">
+                    <div class="multiplier-buttons">
+                        <button type="button" onclick="multiplyParam(100)">x100</button>
+                        <button type="button" onclick="multiplyParam(1000)">x1000</button>
+                    </div>
+                </div>
+                <button onclick="calculateFees()">计算手续费</button>
+            </div>
+            <div class="output-section">
+                <div class="results" id="results"></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // 等待DOM加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 获取所有单选按钮
+            const radioButtons = document.getElementsByName('investmentType');
+
+            // 为每个单选按钮添加事件监听
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', updateLabels);
+            });
+
+            // 初始化标签显示
+            updateLabels();
+        });
+
+        // 更新参数标签函数
+        function updateLabels() {
+            // 获取选中的投资类型
+            const selectedType = document.querySelector('input[name="investmentType"]:checked').value;
+
+            // 获取参数标签元素
+            const param1Label = document.querySelector('label[for="param1"]');
+            const param2Label = document.querySelector('label[for="param2"]');
+            const param2Input = document.getElementById('param2');
+
+            // 根据选中类型更新标签
+            if (selectedType === 'etf' || selectedType === 'stock') {
+                param1Label.textContent = '参数1 (单价)';
+                param2Label.textContent = '参数2 (份额)';
+                param2Input.step = 100;
+                param2Input.min = 100;
+            } else if (selectedType === 'bond') {
+                param1Label.textContent = '参数1 (年化利率%)';
+                param2Label.textContent = '参数2 (参与金额)';
+                param2Input.step = 1000;
+                param2Input.min = 1000;
+            }
+        }
+
+        function multiplyParam(multiplier) {
+            const input = document.getElementById('param2');
+            if (input.value && !isNaN(input.value)) {
+                input.value = (parseFloat(input.value) * multiplier).toFixed(3);
+            }
+        }
+
+        function formatDecimal(input) {
+            if (input.value && !isNaN(input.value)) {
+                // 确保值不为负
+                if (parseFloat(input.value) < 0) {
+                    input.value = 0;
+                }
+                input.value = parseFloat(input.value).toFixed(3);
+            }
+        }
+
+        function multiplyParam1(multiplier) {
+            const input = document.getElementById('param1');
+            if (input.value && !isNaN(input.value)) {
+                input.value = (parseFloat(input.value) * multiplier).toFixed(3);
+            }
+        }
+
+        function addParam1(value) {
+            const input = document.getElementById('param1');
+            if (input.value && !isNaN(input.value)) {
+                input.value = (parseFloat(input.value) + parseFloat(value)).toFixed(3);
+            }
+        }
+
+        function calculateFees() {
+            const typeElements = document.getElementsByName('investmentType');
+            let type;
+            for (const el of typeElements) {
+                if (el.checked) {
+                    type = el.value;
+                    break;
+                }
+            }
+            const param1 = parseFloat(document.getElementById('param1').value);
+            const param2 = parseFloat(document.getElementById('param2').value);
+            const resultsDiv = document.getElementById('results');
+            let resultHTML = '';
+
+            if (isNaN(param1) || isNaN(param2)) {
+                resultsDiv.innerHTML = '<p style="color: red;">请输入有效的数字</p>';
+                return;
+            }
+
+            // 验证ETF和股票的参数2必须是100的整数倍
+            if ((type === 'etf' || type === 'stock') && param2 % 100 !== 0) {
+                resultsDiv.innerHTML = '<p style="color: red;">参数2必须是100的整数倍</p>';
+                return;
+            } else if (type === 'bond' && param2 % 1000 !== 0) {
+                resultsDiv.innerHTML = '<p style="color: red;">参数2必须是1000的整数倍</p>';
+                return;
+            }
+
+            try {
+                let calculationResult;
+                switch(type) {
+                    case 'etf':
+                        calculationResult = calculateETF(param1, param2);
+                        break;
+                    case 'stock':
+                        calculationResult = calculateStock(param1, param2);
+                        break;
+                    case 'bond':
+                        calculationResult = calculateBond(param1, param2);
+                        break;
+                    default:
+                        throw new Error('不支持的投资类型');
+                }
+                resultHTML = generateResultHTML(type, calculationResult);
+            } catch (error) {
+                resultHTML = `<p style="color: red;">计算错误: ${error.message}</p>`;
+            }
+
+            resultsDiv.innerHTML = resultHTML;
+        }
+
+        function calculateETF(price, shares) {
+            const buyAmount = price * shares;
+            const buyFeeRate = 0.00005;
+            const sellFeeRate = 0.00005;
+
+            let buyFee = buyAmount * buyFeeRate;
+            let sellFee = buyAmount * sellFeeRate; // 假设卖出金额与买入金额相同进行估算
+
+            buyFee = Math.max(0.01, Math.round(buyFee * 100) / 100);
+            sellFee = Math.max(0.01, Math.round(sellFee * 100) / 100);
+            const totalFee = buyFee + sellFee;
+
+            const suggestedSellPrice = (buyAmount + totalFee) / shares + 0.001;
+            const suggestedSellPriceRounded = Math.ceil(suggestedSellPrice * 1000) / 1000;
+            const expectedProfit = (suggestedSellPriceRounded * shares) - buyAmount - totalFee;
+
+            return {
+        buyAmount,
+        totalFee,
+        suggestedSellPrice: suggestedSellPriceRounded,
+        expectedProfit,
+        costPrice: (buyAmount + totalFee) / shares,
+        shares: shares,
+        details: {
+            buy: { total: buyFee },
+            sell: { total: sellFee },
+            buyFee: { raw: buyAmount * buyFeeRate, rounded: buyFee },
+            sellFee: { raw: buyAmount * sellFeeRate, rounded: sellFee }
+        }
+    };
+        }
+
+        function calculateStock(price, shares) {
+            const buyAmount = price * shares;
+            const baseFeeRate = 0.0000854;
+            const transferFeeRate = 0.00001;
+            const stampTaxRate = 0.0005;
+
+            // 买入手续费
+            let buyBaseFee = buyAmount * baseFeeRate;
+            let buyTransferFee = buyAmount * transferFeeRate;
+            buyBaseFee = Math.max(0.01, Math.round(buyBaseFee * 100) / 100);
+            buyTransferFee = Math.max(0.01, Math.round(buyTransferFee * 100) / 100);
+            const totalBuyFee = buyBaseFee + buyTransferFee;
+
+            // 卖出手续费
+            let sellBaseFee = buyAmount * baseFeeRate;
+            let sellTransferFee = buyAmount * transferFeeRate;
+            let stampTax = buyAmount * stampTaxRate;
+            sellBaseFee = Math.max(0.01, Math.round(sellBaseFee * 100) / 100);
+            sellTransferFee = Math.max(0.01, Math.round(sellTransferFee * 100) / 100);
+            stampTax = Math.round(stampTax * 100) / 100;
+            const totalSellFee = sellBaseFee + sellTransferFee + stampTax;
+
+            const totalFee = totalBuyFee + totalSellFee;
+            const suggestedSellPrice = (buyAmount + totalFee) / shares + 0.001;
+            const suggestedSellPriceRounded = Math.ceil(suggestedSellPrice * 1000) / 1000;
+            const expectedProfit = (suggestedSellPriceRounded * shares) - buyAmount - totalFee;
+
+            const costPrice = (buyAmount + totalFee) / shares;
+            return {
+                buyAmount,
+                totalFee,
+                suggestedSellPrice: suggestedSellPriceRounded,
+                expectedProfit,
+                costPrice,
+                shares: shares,
+                details: {
+                    buy: {
+                        baseFee: { raw: buyAmount * baseFeeRate, rounded: buyBaseFee },
+                        transferFee: { raw: buyAmount * transferFeeRate, rounded: buyTransferFee },
+                        total: totalBuyFee
+                    },
+                    sell: {
+                        baseFee: { raw: buyAmount * baseFeeRate, rounded: sellBaseFee },
+                        transferFee: { raw: buyAmount * transferFeeRate, rounded: sellTransferFee },
+                        stampTax: { raw: buyAmount * stampTaxRate, rounded: stampTax },
+                        total: totalSellFee
+                    }
+                }
+            };
+        }
+
+        function calculateBond(rate, amount) {
+            const feeRate = 0.000001; // 十万分之0.1
+            let fee = amount * feeRate;
+            fee = Math.max(0.01, Math.round(fee * 100) / 100);
+            const expectedProfit = (rate / 100 * amount / 365) - fee;
+
+            return {
+                buyAmount: amount,
+                totalFee: fee,
+                expectedProfit,
+                rate: rate,
+                details: {
+                    fee: { raw: amount * feeRate, rounded: fee }
+                }
+            };
+        }
+
+        function generateResultHTML(type, result) {
+             let html = ''
+            if (type === 'etf' || type === 'stock') {
+                html += '<h2>计算结果</h2><table class="result-table"><tr><th>项目</th><th>金额（元）</th><th>计算明细（元）</th></tr>';
+                html += '<tr><td colspan="3" class="section-header">买入</td></tr>';
+                html += `<tr><td class="result-label">买入金额:</td><td>${result.buyAmount.toFixed(2)}</td><td>${(result.buyAmount / result.shares).toFixed(2)} × ${result.shares} = ${result.buyAmount.toFixed(2)}</td></tr>`;
+
+                if (type === 'etf') {
+                    html += `<tr><td class="result-label">手续费:</td><td><span style="color: green;">${result.totalFee.toFixed(2)}</span></td><td>${result.buyAmount.toFixed(2)} × 0.00005 = ${(result.buyAmount * 0.00005).toFixed(4)}元 → ${(result.buyAmount * 0.00005).toFixed(2)}元（买入）<br>${result.buyAmount.toFixed(2)} × 0.00005 = ${(result.buyAmount * 0.00005).toFixed(4)}元 → ${(result.buyAmount * 0.00005).toFixed(2)}元（卖出）</td></tr>`;
+                } else {
+                    html += `<tr><td class="result-label">手续费:</td><td><span style="color: green;">${result.totalFee.toFixed(2)}</span></td><td>${result.details.buy.baseFee.rounded.toFixed(2)}+${result.details.buy.transferFee.rounded.toFixed(2)}=${result.details.buy.total.toFixed(2)}元（买入）<br>${result.details.sell.baseFee.rounded.toFixed(2)}+${result.details.sell.transferFee.rounded.toFixed(2)}+${result.details.sell.stampTax.rounded.toFixed(2)}=${result.details.sell.total.toFixed(2)}元（卖出）</td></tr>`;
+                }
+                const roundedCostPrice = Math.ceil(result.costPrice * 1000) / 1000;
+                html += `<tr><td class="result-label">成本价:</td><td><span style="color: red;">${roundedCostPrice.toFixed(3)}</span></td><td>(${result.buyAmount.toFixed(2)}+${result.totalFee.toFixed(2)})/${result.shares} = ${result.costPrice.toFixed(5)}</td></tr>`;
+                html += `<tr><td class="result-label">成本金额:</td><td>${(result.costPrice * result.shares).toFixed(2)}</td><td>${result.costPrice.toFixed(5)} × ${result.shares} = ${(result.costPrice * result.shares).toFixed(2)}</td></tr>`;
+                html += '<tr><td colspan="3" class="section-header">卖出</td></tr>';
+                html += `<tr><td class="result-label">建议卖出价:</td><td><span style="color: red;">${result.suggestedSellPrice.toFixed(3)}</span></td><td></td></tr>`;
+                html += `<tr><td class="result-label">理想卖出金额:</td><td>${(result.suggestedSellPrice * result.shares).toFixed(2)}</td><td>${result.suggestedSellPrice.toFixed(3)} × ${result.shares} = ${(result.suggestedSellPrice * result.shares).toFixed(2)}</td></tr>`;
+                html += '<tr><td colspan="3" class="section-header">收益</td></tr>';
+                html += `<tr><td class="result-label">盈利:</td><td><span style="color: red;">${result.expectedProfit.toFixed(2)}</span></td><td>${(result.suggestedSellPrice * result.shares).toFixed(2)} - ${(result.costPrice * result.shares).toFixed(2)} = ${result.expectedProfit.toFixed(2)}</td></tr>`;
+            }
+            html += '</table>';
+
+            if (type === 'stock') {
+                html += '<h2><span style="color: blue;">手续费明细</span></h2><table class="result-table"><tr><th>项目</th><th>金额（元）</th><th>计算过程</th></tr>';
+                html += '<tr><td colspan="3" class="section-header">买入手续费</td></tr>';
+                html += `<tr><td>券商佣金</td><td>${result.details.buy.baseFee.raw.toFixed(4)} → <strong>${result.details.buy.baseFee.rounded.toFixed(2)}</strong></td><td>${result.buyAmount.toFixed(2)} × 0.0000854</td></tr>`;
+                html += `<tr><td>过户费</td><td>${result.details.buy.transferFee.raw.toFixed(4)} → <strong>${result.details.buy.transferFee.rounded.toFixed(2)}</strong></td><td>${result.buyAmount.toFixed(2)} × 0.00001</td></tr>`;
+                html += `<tr><td><strong>总计</strong></td><td><strong>${result.details.buy.total.toFixed(2)}</strong></td><td></td></tr>`;
+                html += '<tr><td colspan="3" class="section-header">卖出手续费</td></tr>';
+                html += `<tr><td>券商佣金</td><td>${result.details.sell.baseFee.raw.toFixed(4)} → <strong>${result.details.sell.baseFee.rounded.toFixed(2)}</strong></td><td>${result.buyAmount.toFixed(2)} × 0.0000854</td></tr>`;
+                html += `<tr><td>过户费</td><td>${result.details.sell.transferFee.raw.toFixed(4)} → <strong>${result.details.sell.transferFee.rounded.toFixed(2)}</strong></td><td>${result.buyAmount.toFixed(2)} × 0.00001</td></tr>`;
+                html += `<tr><td>印花税</td><td>${result.details.sell.stampTax.raw.toFixed(4)} → <strong>${result.details.sell.stampTax.rounded.toFixed(2)}</strong></td><td>${result.buyAmount.toFixed(2)} × 0.0005</td></tr>`;
+                html += `<tr><td><strong>总计</strong></td><td><strong>${result.details.sell.total.toFixed(2)}</strong></td><td></td></tr>`;
+                html += '</table>';
+            }
+
+            if (type === 'bond') {
+                const interest = result.expectedProfit + result.totalFee;
+                html += '<h2>计算结果</h2><table class="result-table"><tr><th>项目</th><th>金额（元）</th><th>计算明细（元）</th></tr>';
+                html += '<tr><td colspan="3" class="section-header">买入</td></tr>';
+                html += `<tr><td class="result-label">买入金额:</td><td>${result.buyAmount.toFixed(2)}</td><td></td></tr>`;
+                html += `<tr><td class="result-label">手续费:</td><td>${result.totalFee.toFixed(2)}</td><td>${result.buyAmount.toFixed(0)} x 0.01 x 0.0001</td></tr>`;
+                html += '<tr><td colspan="3" class="section-header">收益</td></tr>';
+                html += `<tr><td class="result-label">盈利:</td><td><span style="color: red">${interest.toFixed(2)}</span></td><td>${interest.toFixed(5)}=${result.rate}%年化利率x${result.buyAmount.toFixed(0)}参与金额/365天</td></tr>`;
+                html += '</table>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+    </script>
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input').forEach(input => {
+                input.addEventListener('keydown', e => {
+                    console.log('Event triggered');
+                    if(e.key === 'Enter') {
+                        e.preventDefault();
+                        calculateFees();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
