@@ -422,6 +422,16 @@ export const constantRoute = [
     }
   },
   {
+    path: '/texteditwithalt',
+    component: () => import('@/components/Tools/TextEditWithAlt/TextEditWithAlt.vue'),
+    name: 'TextEditWithAlt',
+    meta: {
+      title: "多列编辑",
+      keywords: '多列编辑',
+      description: 'alt+鼠标左键，多列编辑',
+    }
+  },
+  {
     path: '/textedit',
     component: () => import('@/components/Tools/TextEdit/TextEdit.vue'),
     name: 'TextEdit',

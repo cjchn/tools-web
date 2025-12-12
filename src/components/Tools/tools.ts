@@ -133,7 +133,7 @@ export function getToolsCate() {
           url: '/cssformat/',
           cateId: 2,
           cate: '开发运维',
-        }
+        },
       ]
     },
     {
@@ -192,6 +192,15 @@ export function getToolsCate() {
           logo: '/images/logo/richtextEditor.png',
           desc: '在线富文本编辑, html实时预览，在线编辑文本，文本编辑获取html',
           url: '/textedit/',
+          cateId: 3,
+          cate: '文本处理'
+        },
+        {
+          id: 1,
+          title: '多列编辑',
+          logo: '/images/logo/richtextEditor.png',
+          desc: 'alt+鼠标左键，多列编辑',
+          url: '/texteditwithalt/',
           cateId: 3,
           cate: '文本处理'
         },
