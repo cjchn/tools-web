@@ -2,9 +2,8 @@
 import { reactive, computed } from 'vue'
 import DetailHeader from '@/components/Layout/DetailHeader/DetailHeader.vue'
 import ToolDetail from '@/components/Layout/ToolDetail/ToolDetail.vue'
-import { copy } from '@/utils/string.ts';
+import { copy as copyUtil } from '@/utils/string.ts';
 import { Codemirror } from "vue-codemirror";
-import { EditorState } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import '@codemirror/search';
@@ -43,28 +42,7 @@ const sampleText = `多列编辑工具示例文本
 这是第十四行内容
 这是第十五行内容`
 
-// 计算多列文本
-const multiColumnText = computed(() => {
-  if (!info.inputText) return ''
 
-  const lines = info.inputText.split('\n')
-  const columnLines = Math.ceil(lines.length / info.columnCount)
-  const columns = []
-
-  // 创建列数组
-  for (let i = 0; i < info.columnCount; i++) {
-    columns.push([])
-  }
-
-  // 分配行到列
-  for (let i = 0; i < lines.length; i++) {
-    const columnIndex = i % info.columnCount
-    columns[columnIndex].push(lines[i])
-  }
-
-  // 合并列为字符串
-  return columns.map(col => col.join('\n')).join('\n\n'.repeat(info.columnGap / 5))
-})
 
 // 计算多列HTML
 const multiColumnHtml = computed(() => {
@@ -84,12 +62,12 @@ const clear = () => {
 }
 
 // 复制多列HTML
-const copy = async () => {
+const copyHtml = async () => {
   if (!multiColumnHtml.value) {
     ElMessage.warning('没有可复制的内容')
     return
   }
-  copy(multiColumnHtml.value)
+  copyUtil(multiColumnHtml.value)
   ElMessage.success('多列HTML已复制')
 }
 
@@ -166,7 +144,7 @@ const removeNumbers = () => {
 
       <!-- 操作按钮 -->
       <div class="mt-4 mb-6">
-        <el-button type="primary" @click="copy">复制</el-button>
+        <el-button type="primary" @click="copyHtml">复制</el-button>
         <el-button type="primary" @click="clear">清空</el-button>
         <el-button type="primary" @click="loadSample">示例</el-button>
         <el-button type="primary" @click="addNumbers">添加序号</el-button>
