@@ -242,6 +242,16 @@ export const constantRoute = [
     }
   },
   {
+    path: '/onlineruler',
+    component: () => import('@/components/Tools/OnlineRuler/OnlineRuler.vue'),
+    name: 'OnlineRuler',
+    meta: {
+      title: "在线尺子",
+      keywords: '在线尺子',
+      description: '在线尺子方便测量',
+    }
+  },
+  {
     path: '/texttoimg',
     component: () => import('@/components/Tools/TextToImg/TextToImg.vue'),
     name: 'textToImg',
@@ -422,9 +432,9 @@ export const constantRoute = [
     }
   },
   {
-    path: '/texteditwithalt',
-    component: () => import('@/components/Tools/TextEditWithAlt/TextEditWithAlt.vue'),
-    name: 'TextEditWithAlt',
+    path: '/multicolumnediting',
+    component: () => import('@/components/Tools/MultiColumnEditing/MultiColumnEditing.vue'),
+    name: 'MultiColumnEditing',
     meta: {
       title: "多列编辑",
       keywords: '多列编辑',

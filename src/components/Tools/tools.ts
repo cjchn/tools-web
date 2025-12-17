@@ -200,7 +200,7 @@ export function getToolsCate() {
           title: '多列编辑',
           logo: '/images/logo/richtextEditor.png',
           desc: 'alt+鼠标左键，多列编辑',
-          url: '/texteditwithalt/',
+          url: '/multicolumnediting/',
           cateId: 3,
           cate: '文本处理'
         },
@@ -211,6 +211,15 @@ export function getToolsCate() {
       title: '教育学术',
       icon: '',
       list: [
+        {
+          id: 1,
+          title: '在线尺子',
+          logo: '/images/logo/file-markdown-fill.png',
+          desc: '在线尺子',
+          url: '/onlineruler/',
+          cateId: 3,
+          cate: '在线尺子'
+        },
         {
           id: 1,
           title: '单位换算',

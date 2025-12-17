@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, computed } from 'vue'
+import { reactive } from 'vue'
 import DetailHeader from '@/components/Layout/DetailHeader/DetailHeader.vue'
 import ToolDetail from '@/components/Layout/ToolDetail/ToolDetail.vue'
 import { copy as copyUtil } from '@/utils/string.ts';
@@ -44,31 +44,21 @@ const sampleText = `多列编辑工具示例文本
 
 
 
-// 计算多列HTML
-const multiColumnHtml = computed(() => {
-  if (!info.inputText) return ''
 
-  // 生成HTML
-  return `
-    <div style="column-count: ${info.columnCount}; column-gap: ${info.columnGap}px;">
-      ${info.inputText.split('\n').map(line => `<p>${line}</p>`).join('')}
-    </div>
-  `
-})
 
 //清空输入框
 const clear = () => {
   info.inputText = ''
 }
 
-// 复制多列HTML
-const copyHtml = async () => {
-  if (!multiColumnHtml.value) {
+// 复制原始文本
+const copyText = async () => {
+  if (!info.inputText) {
     ElMessage.warning('没有可复制的内容')
     return
   }
-  copyUtil(multiColumnHtml.value)
-  ElMessage.success('多列HTML已复制')
+  copyUtil(info.inputText)
+  ElMessage.success('文本已复制')
 }
 
 // 填充示例数据
@@ -111,9 +101,13 @@ const removeNumbers = () => {
     // 1.xx 或 1. xx (数字序号)
     // 一.xx 或 一. xx (中文数字带点序号)
     // 一xx (中文数字序号)
+    // 1、xx 或 1、 xx (数字+顿号序号)
+    // 一、xx 或 一、 xx (中文数字+顿号序号)
     processedLine = processedLine.replace(/^\d+\.\s*/, '')
     processedLine = processedLine.replace(/^[一二三四五六七八九十]+\.\s*/, '')
     processedLine = processedLine.replace(/^[一二三四五六七八九十]+/, '')
+    processedLine = processedLine.replace(/^\d+、\s*/, '')
+    processedLine = processedLine.replace(/^[一二三四五六七八九十]+、\s*/, '')
     
     return processedLine.trim()
   })
@@ -134,7 +128,7 @@ const removeNumbers = () => {
         <codemirror
           v-model="info.inputText"
           placeholder="请输入要进行多列编辑的文本..."
-          :style="{ height: '300px' }"
+          :style="{ height: '500px' }"
           :autofocus="true"
           :indent-with-tab="true"
           :tabSize="2"
@@ -144,7 +138,7 @@ const removeNumbers = () => {
 
       <!-- 操作按钮 -->
       <div class="mt-4 mb-6">
-        <el-button type="primary" @click="copyHtml">复制</el-button>
+        <el-button type="primary" @click="copyText">复制</el-button>
         <el-button type="primary" @click="clear">清空</el-button>
         <el-button type="primary" @click="loadSample">示例</el-button>
         <el-button type="primary" @click="addNumbers">添加序号</el-button>
@@ -173,3 +167,4 @@ const removeNumbers = () => {
   text-align: justify;
 }
 </style>
+
