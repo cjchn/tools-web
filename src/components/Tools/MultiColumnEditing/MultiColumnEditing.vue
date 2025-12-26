@@ -12,93 +12,25 @@ const STORAGE_KEY = 'multi-column-editing-content'
 const TIME_KEY = 'multi-column-editing-time'
 const CACHE_EXPIRE_HOURS = 1
 
-const BOOKMARKS_TIMEOUT_MS = 3000
-
 const getCachedContent = async (): Promise<{ content: string; time: string } | null> => {
-  const localStoragePromise = new Promise<{ content: string; time: string } | null>((resolve) => {
-    const saved = localStorage.getItem(STORAGE_KEY)
-    const savedTime = localStorage.getItem(TIME_KEY)
-    if (saved && savedTime) {
-      const savedDate = new Date(savedTime)
-      const now = new Date()
-      const hoursDiff = (now.getTime() - savedDate.getTime()) / (1000 * 60 * 60)
-      if (hoursDiff < CACHE_EXPIRE_HOURS) {
-        resolve({ content: saved, time: savedTime })
-      } else {
-        localStorage.removeItem(STORAGE_KEY)
-        localStorage.removeItem(TIME_KEY)
-        resolve(null)
-      }
+  const saved = localStorage.getItem(STORAGE_KEY)
+  const savedTime = localStorage.getItem(TIME_KEY)
+  if (saved && savedTime) {
+    const savedDate = new Date(savedTime)
+    const now = new Date()
+    const hoursDiff = (now.getTime() - savedDate.getTime()) / (1000 * 60 * 60)
+    if (hoursDiff < CACHE_EXPIRE_HOURS) {
+      return { content: saved, time: savedTime }
     } else {
-      resolve(null)
+      localStorage.removeItem(STORAGE_KEY)
+      localStorage.removeItem(TIME_KEY)
+      return null
     }
-  })
-
-  const bookmarksPromise = new Promise<{ content: string; time: string } | null>(async (resolve) => {
-    if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-      try {
-        const tree = await chrome.bookmarks.getTree() as any[]
-        const findNode = (nodes: any[]): any => {
-          for (const node of nodes) {
-            if (node.title === STORAGE_KEY) return node
-            if (node.children) {
-              const found = findNode(node.children)
-              if (found) return found
-            }
-          }
-          return null
-        }
-        const folder = findNode(tree)
-        if (folder && folder.children) {
-          const contentNode = folder.children.find((c: any) => c.title === 'content') as any
-          const timeNode = folder.children.find((c: any) => c.title === 'time') as any
-          if (contentNode && timeNode && contentNode.url) {
-            const savedTime = new Date(timeNode.title)
-            const now = new Date()
-            const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60)
-            if (hoursDiff < CACHE_EXPIRE_HOURS) {
-              resolve({ content: decodeURIComponent(contentNode.url), time: timeNode.title })
-            } else {
-              await chrome.bookmarks.removeTree(folder.id)
-              resolve(null)
-            }
-          } else {
-            resolve(null)
-          }
-        } else {
-          resolve(null)
-        }
-      } catch (e) {
-        console.error('Bookmarks API error:', e)
-        resolve(null)
-      }
-    } else {
-      resolve(null)
-    }
-  })
-
-  const timeoutPromise = new Promise<null>((resolve) => {
-    setTimeout(() => resolve(null), BOOKMARKS_TIMEOUT_MS)
-  })
-
-  const bookmarksWithTimeout = Promise.race([bookmarksPromise, timeoutPromise])
-  return await Promise.race([localStoragePromise, bookmarksWithTimeout])
+  }
+  return null
 }
 
 const saveToCache = async (content: string, timeStr: string) => {
-  if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-    try {
-      const tree = await chrome.bookmarks.getTree() as any[]
-      let folder = tree.find((n: any) => n.title === STORAGE_KEY && n.children)
-      if (!folder) {
-        folder = await chrome.bookmarks.create({ title: STORAGE_KEY })
-      }
-      await chrome.bookmarks.create({ title: 'content', parentId: (folder as any).id, url: encodeURIComponent(content) })
-      await chrome.bookmarks.create({ title: 'time', parentId: (folder as any).id, url: timeStr })
-    } catch (e) {
-      console.error('Bookmarks save error:', e)
-    }
-  }
   localStorage.setItem(STORAGE_KEY, content)
   localStorage.setItem(TIME_KEY, timeStr)
 }
@@ -117,21 +49,6 @@ const restoreContent = async () => {
 const clearStorage = async () => {
   localStorage.removeItem(STORAGE_KEY)
   localStorage.removeItem(TIME_KEY)
-  if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-    try {
-      const tree = await chrome.bookmarks.getTree() as any[]
-      for (const node of tree) {
-        if (node.title === STORAGE_KEY && node.children) {
-          await chrome.bookmarks.removeTree(node.id)
-          break
-        }
-      }
-    } catch (e) {
-      console.error('Bookmarks clear error:', e)
-    }
-  }
-  info.lastSaveTime = ''
-  ElMessage.success('已清除保存的数据')
 }
 
 const saveText = async () => {

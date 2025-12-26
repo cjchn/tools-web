@@ -7,7 +7,7 @@ import clipboard3 from 'vue-clipboard3'
  * @param reg 需转义的特殊字符
  * @returns 转义后的字符串
  */
-export function transferred(str: string, reg: string = "`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）;—|【】‘；：""'。，、？") {
+export function transferred(str: string, reg: string = "`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*（）;—|【】'；：\"'。，、？") {
     let pattern = new RegExp("[" + reg + "]");
     let res = '';
     Array.from(str).forEach((char: any) => {
