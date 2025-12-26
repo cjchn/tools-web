@@ -23,7 +23,8 @@ export interface ToolsInfo {
   show?: number
 }
 
-import { fetchRoutes, isShowValidated } from '@/utils/api'
+import { fetchRoutes } from '@/utils/api'
+import { isShowValidated } from '@/utils/showStore'
 import { loadDynamicRoutes } from '@/router'
 
 async function updateStoreCates(cates: any[]) {

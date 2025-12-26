@@ -28,13 +28,13 @@ const handleOpen = () => {
 }
 
 const handleClose = () => {
-  
+
 }
 
 //跳转锚点
 const query = reactive({ value: '' })
 const gotoAnchor = (anchor: string) => {
-  console.log(route.path)
+  // console.log(route.path)
   if (route.path === '/') {
     document?.getElementById(anchor)?.scrollIntoView({
       behavior: "smooth", //smooth:平滑，auto：直接定位
@@ -55,7 +55,7 @@ const gotoAbout = () => {
 
 onMounted(async () => {
   await getToolCates()
-  
+
 })
 </script>
 
@@ -95,7 +95,7 @@ onMounted(async () => {
                 <el-menu-item
                   @click="gotoAnchor('cate_' + item.id)"
                   :index="item.id.toString()"
-                  v-for="(item,index) in toolsStore.cates" 
+                  v-for="(item,index) in toolsStore.cates"
                   :key="index"
                 >
                   {{ item.title }}

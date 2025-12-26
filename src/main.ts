@@ -19,7 +19,7 @@ import { setupMdEditor } from './plugins/v-md-editor'
 //default-passive-events
 import 'default-passive-events'
 //API
-import { fetchShow } from './utils/api'
+import { fetchShow, validateCachedShow } from './utils/showStore'
 
 
 const app = createApp(App)
@@ -38,6 +38,8 @@ if (key) {
   fetchShow(key).catch(error => {
     console.error('Show API调用失败:', error)
   })
+} else {
+  validateCachedShow()
 }
 
 app.mount('#app')
