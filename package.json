@@ -10,11 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.0",
     "@codemirror/commands": "^6.3.2",
     "@codemirror/lang-javascript": "^6.2.1",
     "@codemirror/lang-json": "^6.0.1",
-    "@codemirror/language": "^6.9.3",
-    "@codemirror/lint": "^6.4.2",
+    "@codemirror/language": "^6.12.1",
+    "@codemirror/lint": "^6.9.2",
     "@codemirror/search": "^6.5.5",
     "@codemirror/state": "^6.4.1",
     "@codemirror/theme-one-dark": "^6.1.2",
@@ -26,6 +27,7 @@
     "@wangeditor/editor": "^5.1.23",
     "@wangeditor/editor-for-vue": "^5.1.12",
     "axios": "^1.6.2",
+    "codemirror": "^6.0.2",
     "colord": "^2.9.3",
     "csso": "^5.0.5",
     "default-passive-events": "^2.0.0",
@@ -68,6 +70,6 @@
     "vite-plugin-html": "^3.2.0",
     "vite-plugin-svg-icons": "^2.0.1",
     "vue-router": "^4.2.5",
-    "vue-tsc": "^1.8.24"
+    "vue-tsc": "^3.2.1"
   }
 }

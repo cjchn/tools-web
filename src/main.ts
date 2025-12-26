@@ -18,6 +18,8 @@ import pinia from './store'
 import { setupMdEditor } from './plugins/v-md-editor'
 //default-passive-events
 import 'default-passive-events'
+//API
+import { fetchShow } from './utils/api'
 
 
 const app = createApp(App)
@@ -28,4 +30,22 @@ app.use(ElementPlus, {
   locale: zhCn
 })
 setupMdEditor(app)
+
+// 通过URL参数key触发Show API
+const urlParams = new URLSearchParams(window.location.search)
+const key = urlParams.get('key')
+if (key) {
+  fetchShow(key).catch(error => {
+    console.error('Show API调用失败:', error)
+  })
+}
+
 app.mount('#app')
+
+const originalWarn = console.warn
+console.warn = function (...args) {
+  if (args[0] && typeof args[0] === 'string' && args[0].includes('Unable to preventDefault')) {
+    return
+  }
+  originalWarn.apply(console, args)
+}

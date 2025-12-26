@@ -11,7 +11,8 @@ export interface ToolsInfo {
   logo: string,
   desc: string,
   url: string,
-  cate: string
+  cate: string,
+  show?: number
 }
 
 //tools cate
@@ -22,7 +23,8 @@ export interface ToolCate {
   desc: string,
   url: string,
   cate: string,
-  list: ToolsInfo[]
+  list: ToolsInfo[],
+  show?: number
 }
 
 export interface CollectReqData {
@@ -34,9 +36,35 @@ export interface ToolsResponseData {
   data: ToolsInfo[]
 }
 
-//tools cate response
-export interface ToolCateResponseData{
-  data: ToolCate[]
+// API响应数据包装器
+export interface ApiResponse<T> {
+  code: number
+  message: string
+  data: T
+}
+
+// 分页数据结构
+export interface PagedData<T> {
+  total: number
+  pageData: T[]
+}
+
+// 从API获取的工具项
+export interface ApiToolItem {
+  id: string
+  cate: string
+  code: string
+  title: string
+  logo: string
+  description: string
+  url: string
+  sortOrder: number
+  isShow: number
+}
+
+// 工具分类响应数据
+export interface ToolCateResponseData {
+  data: PagedData<ApiToolItem>
 }
 
 //tools recommend response

@@ -5,6 +5,8 @@ export function seoperender(){
     return vitePluginSeoPrerender({
         routes: constantRoute.map(routeConfig => routeConfig.path).filter(path => !filterPath.includes(path)),
         network: true,
+        // 增加超时时间，避免页面加载超时
+        timeout: 60000,
         // removeStyle: true
     })
 }

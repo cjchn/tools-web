@@ -38,3 +38,51 @@ pnpm build
 ```
 pnpm build:pro
 ```
+
+### 怎么增加新功能
+
+1. 添加菜单：[tools.ts](src/components/Tools/tools.ts)
+2. 修改图片：[logo](public/images/logo/)
+3. 添加路由：[router.ts](src/router/router.ts)
+4. 创建组件：[src/components/Tools/New/New.vue](src/components/Tools/)
+
+### 接口获取添加动态目录和路由
+动态目录就是跳转到三方站点的菜单，因为不想手动配，就写了一个接口。
+接口对接的有个管理端，可以配置，可以参考接口返回内容自己定义表。
+```
+# 路由配置API端点，动态目录和路由
+VITE_ROUTES_API_ENDPOINT = 'http://localhost:8085/open/tool/site/bookmarks'
+# Show字典API端点，菜单隐藏显示
+VITE_SHOW_API_ENDPOINT = 'http://localhost:8085/open/sys/dicts/code'
+```
+返回接口示例
+```jsonc
+{
+  "code": 0,
+  "message": "OK",
+  "data": [
+    {
+      "cate": "搜索工具",
+      "code": "baidu",
+      "title": "百度",
+      "logo": "",
+      "description": "百度",
+      "url": "http://www.baidu.com/",
+      "isShow": 1
+    }
+  ]
+}
+```
+
+**字段说明：**
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| cate | string | 分类 |
+| code | string | 菜单，用来组装目录和路由，不能和已有配置相同，否则无法实现跳转 |
+| title | string | 功能名称 |
+| logo | string | 图表，不指定默认使用 `/images/logo/jump.jpg` |
+| description | string | 功能描述 |
+| url | string | 功能链接 |
+| isShow | number | 是否显示，1显示，0隐藏，其他默认显示 |
+更多处理逻辑可以查看[src/api/tools.ts](src/api/tools.ts).getToolsCate

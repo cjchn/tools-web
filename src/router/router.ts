@@ -462,6 +462,18 @@ export const constantRoute = [
       description: '私人投资手续费计算器',
     }
   },
+  {
+    name: 'our',
+    path: '/our',
+    component: () => import('@/components/404/404.vue'),
+    // 路由导航守卫：在进入路由前执行重定向操作
+    beforeEnter: () => {
+      // 打开新窗口跳转到外部云便签服务地址
+      window.open('http://oocj.cn/', '_blank');
+      // 返回false阻止默认导航，避免原窗口也跳转
+      return false; // 阻止默认导航
+    }
+  },
   // 关于
   {
     path: '/about',

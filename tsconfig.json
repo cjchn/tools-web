@@ -29,8 +29,9 @@
       "@/*": ["src/*"]
     },
     "allowJs": true,
-    "noImplicitAny": false,
+    "noImplicitAny": false
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.ts*", "src/**/*.vue"],
+  "exclude": ["node_modules/qrcode-vue3"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
