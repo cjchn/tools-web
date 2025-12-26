@@ -87,8 +87,7 @@ const localToolsCateData: ToolCateResponseData = {
  */
 export async function fetchToolsCate(): Promise<ToolCateResponseData> {
   try {
-    const response = await request<ToolCateResponseData>(import.meta.env.VITE_ROUTES_API_ENDPOINT || '/open/tool/site/bookmarks')
-    return response
+    return await request<ToolCateResponseData>(import.meta.env.VITE_ROUTES_API_ENDPOINT || '/open/tool/site/bookmarks')
   } catch (error) {
     return localToolsCateData
   }
