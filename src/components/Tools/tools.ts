@@ -37,12 +37,9 @@ export async function getToolsCate(): Promise<ToolCate[]> {
 }
 
 function filterResult(result: ToolCate[]): ToolCate[] {
-  const urlParams = new URLSearchParams(window.location.search)
-  const hasKeyParam = !!urlParams.get('key')
   const validated = isShowValidated()
-  const shouldShowAll = hasKeyParam || validated
 
-  if (!shouldShowAll) {
+  if (!validated) {
     return result.map(cate => {
       const cateShow = cate.show !== undefined ? cate.show : 1
       if (cateShow === 0) {

@@ -119,6 +119,7 @@ export async function fetchShow(code: string, remark: string = 'tool_site_dynami
       return showInfo
     }
 
+    showValidated = false
     return null
   } catch (error) {
     return null
