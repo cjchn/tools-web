@@ -12,53 +12,77 @@ const STORAGE_KEY = 'multi-column-editing-content'
 const TIME_KEY = 'multi-column-editing-time'
 const CACHE_EXPIRE_HOURS = 1
 
+const BOOKMARKS_TIMEOUT_MS = 3000
+
 const getCachedContent = async (): Promise<{ content: string; time: string } | null> => {
-  if (typeof chrome !== 'undefined' && chrome.bookmarks) {
-    try {
-      const tree = await chrome.bookmarks.getTree() as any[]
-      const findNode = (nodes: any[]): any => {
-        for (const node of nodes) {
-          if (node.title === STORAGE_KEY) return node
-          if (node.children) {
-            const found = findNode(node.children)
-            if (found) return found
-          }
-        }
-        return null
+  const localStoragePromise = new Promise<{ content: string; time: string } | null>((resolve) => {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    const savedTime = localStorage.getItem(TIME_KEY)
+    if (saved && savedTime) {
+      const savedDate = new Date(savedTime)
+      const now = new Date()
+      const hoursDiff = (now.getTime() - savedDate.getTime()) / (1000 * 60 * 60)
+      if (hoursDiff < CACHE_EXPIRE_HOURS) {
+        resolve({ content: saved, time: savedTime })
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+        localStorage.removeItem(TIME_KEY)
+        resolve(null)
       }
-      const folder = findNode(tree)
-      if (folder && folder.children) {
-        const contentNode = folder.children.find((c: any) => c.title === 'content') as any
-        const timeNode = folder.children.find((c: any) => c.title === 'time') as any
-        if (contentNode && timeNode && contentNode.url) {
-          const savedTime = new Date(timeNode.title)
-          const now = new Date()
-          const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60)
-          if (hoursDiff < CACHE_EXPIRE_HOURS) {
-            return { content: decodeURIComponent(contentNode.url), time: timeNode.title }
-          } else {
-            await chrome.bookmarks.removeTree(folder.id)
-          }
-        }
-      }
-    } catch (e) {
-      console.error('Bookmarks API error:', e)
-    }
-  }
-  const saved = localStorage.getItem(STORAGE_KEY)
-  const savedTime = localStorage.getItem(TIME_KEY)
-  if (saved && savedTime) {
-    const savedDate = new Date(savedTime)
-    const now = new Date()
-    const hoursDiff = (now.getTime() - savedDate.getTime()) / (1000 * 60 * 60)
-    if (hoursDiff < CACHE_EXPIRE_HOURS) {
-      return { content: saved, time: savedTime }
     } else {
-      localStorage.removeItem(STORAGE_KEY)
-      localStorage.removeItem(TIME_KEY)
+      resolve(null)
     }
-  }
-  return null
+  })
+
+  const bookmarksPromise = new Promise<{ content: string; time: string } | null>(async (resolve) => {
+    if (typeof chrome !== 'undefined' && chrome.bookmarks) {
+      try {
+        const tree = await chrome.bookmarks.getTree() as any[]
+        const findNode = (nodes: any[]): any => {
+          for (const node of nodes) {
+            if (node.title === STORAGE_KEY) return node
+            if (node.children) {
+              const found = findNode(node.children)
+              if (found) return found
+            }
+          }
+          return null
+        }
+        const folder = findNode(tree)
+        if (folder && folder.children) {
+          const contentNode = folder.children.find((c: any) => c.title === 'content') as any
+          const timeNode = folder.children.find((c: any) => c.title === 'time') as any
+          if (contentNode && timeNode && contentNode.url) {
+            const savedTime = new Date(timeNode.title)
+            const now = new Date()
+            const hoursDiff = (now.getTime() - savedTime.getTime()) / (1000 * 60 * 60)
+            if (hoursDiff < CACHE_EXPIRE_HOURS) {
+              resolve({ content: decodeURIComponent(contentNode.url), time: timeNode.title })
+            } else {
+              await chrome.bookmarks.removeTree(folder.id)
+              resolve(null)
+            }
+          } else {
+            resolve(null)
+          }
+        } else {
+          resolve(null)
+        }
+      } catch (e) {
+        console.error('Bookmarks API error:', e)
+        resolve(null)
+      }
+    } else {
+      resolve(null)
+    }
+  })
+
+  const timeoutPromise = new Promise<null>((resolve) => {
+    setTimeout(() => resolve(null), BOOKMARKS_TIMEOUT_MS)
+  })
+
+  const bookmarksWithTimeout = Promise.race([bookmarksPromise, timeoutPromise])
+  return await Promise.race([localStoragePromise, bookmarksWithTimeout])
 }
 
 const saveToCache = async (content: string, timeStr: string) => {
@@ -129,13 +153,16 @@ const info = reactive({
   lastSaveTime: '',
 })
 
-onMounted(async () => {
-  const cached = await getCachedContent()
-  if (cached) {
-    info.inputText = cached.content
-    info.lastSaveTime = cached.time
-    ElMessage.success(`已从保存获取到数据：${cached.time}`)
-  }
+onMounted(() => {
+  setTimeout(() => {
+    getCachedContent().then(cached => {
+      if (cached) {
+        info.inputText = cached.content
+        info.lastSaveTime = cached.time
+        ElMessage.success(`已从保存获取到数据：${cached.time}`)
+      }
+    })
+  }, 0)
 })
 
 // 示例数据
@@ -412,36 +439,6 @@ const splitBySeparator = () => {
 </template>
 
 <style scoped>
-:deep(.cm-editor) {
-  font-size: 15px;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-}
-
-:deep(.cm-scroller) {
-  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
-  overflow: auto;
-  touch-action: auto;
-}
-
-:deep(.cm-scroller::-webkit-scrollbar) {
-  width: 8px;
-  height: 8px;
-}
-
-:deep(.cm-scroller::-webkit-scrollbar-thumb) {
-  background: #d9d9d9;
-  border-radius: 4px;
-}
-
-:deep(.cm-scroller::-webkit-scrollbar-track) {
-  background: #f5f5f5;
-  border-radius: 4px;
-}
-
-:deep(.cm-content) {
-  caret-color: auto;
-}
-
 :deep(p) {
   margin: 0 0 8px 0;
   text-align: justify;

@@ -23,21 +23,59 @@ export interface ToolsInfo {
   show?: number
 }
 
-import { fetchRoutes, getCachedRoutesData, isShowValidated } from '@/utils/api'
+import { fetchRoutes, isShowValidated } from '@/utils/api'
 import { loadDynamicRoutes } from '@/router'
 
+async function updateStoreCates(cates: any[]) {
+  const { useToolsStore } = await import('@/store/modules/tools')
+  useToolsStore().updateCates(cates)
+}
+
 export async function getToolsCate(): Promise<ToolCate[]> {
-  try {
-    let result: ToolCate[] = [...localToolsCate]
+  return getToolsCateWithCache()
+}
 
-    const response = getCachedRoutesData() || await fetchRoutes()
+function filterResult(result: ToolCate[]): ToolCate[] {
+  const urlParams = new URLSearchParams(window.location.search)
+  const hasKeyParam = !!urlParams.get('key')
+  const validated = isShowValidated()
+  const shouldShowAll = hasKeyParam || validated
 
+  if (!shouldShowAll) {
+    return result.map(cate => {
+      const cateShow = cate.show !== undefined ? cate.show : 1
+      if (cateShow === 0) {
+        return null
+      }
+
+      const filteredList = cate.list.filter(tool => {
+        const toolShow = tool.show !== undefined ? tool.show : 1
+        return toolShow !== 0
+      })
+
+      if (filteredList.length === 0) {
+        return null
+      }
+
+      return {
+        ...cate,
+        list: filteredList
+      }
+    }).filter((cate): cate is ToolCate => cate !== null)
+  }
+  return result
+}
+
+async function getToolsCateWithCache(): Promise<ToolCate[]> {
+  const filteredLocal = await filterResult(JSON.parse(JSON.stringify(localToolsCate)))
+
+  fetchRoutes().then(async (response: any) => {
     if (response.data && Array.isArray(response.data) && response.data.length > 0) {
       loadDynamicRoutes()
       const pageData = response.data
 
       const cateMap = new Map<string, typeof pageData>()
-      pageData.forEach(item => {
+      pageData.forEach((item: any) => {
         const cateName = item.cate
         if (!cateMap.has(cateName)) {
           cateMap.set(cateName, [])
@@ -45,15 +83,17 @@ export async function getToolsCate(): Promise<ToolCate[]> {
         cateMap.get(cateName)?.push(item)
       })
 
+      let mergedResult = await filterResult(JSON.parse(JSON.stringify(localToolsCate)))
+
       cateMap.forEach((items, cateName) => {
-        const existingCate = result.find(cate => cate.title === cateName)
+        const existingCate = mergedResult.find(cate => cate.title === cateName)
 
         if (existingCate) {
           const maxToolId = existingCate.list.length > 0
             ? Math.max(...existingCate.list.map(tool => tool.id))
             : 0
 
-          items.forEach(item => {
+          items.forEach((item: any) => {
             const newToolId = maxToolId + 1
             existingCate.list.push({
               id: newToolId,
@@ -67,15 +107,15 @@ export async function getToolsCate(): Promise<ToolCate[]> {
             })
           })
         } else {
-          const newCateId = result.length > 0
-            ? Math.max(...result.map(cate => cate.id)) + 1
+          const newCateId = mergedResult.length > 0
+            ? Math.max(...mergedResult.map(cate => cate.id)) + 1
             : 1
 
-          result.push({
+          mergedResult.push({
             id: newCateId,
             title: cateName,
             icon: '',
-            list: items.map((item, index) => ({
+            list: items.map((item: any, index: number) => ({
               id: index + 1,
               title: item.title,
               logo: item.logo || '/images/logo/jump.jpg',
@@ -88,52 +128,15 @@ export async function getToolsCate(): Promise<ToolCate[]> {
           })
         }
       })
+
+      const filteredMergedResult = await filterResult(JSON.parse(JSON.stringify(mergedResult)))
+      updateStoreCates(filteredMergedResult)
+    } else {
+      updateStoreCates(filteredLocal)
     }
+  })
 
-    const urlParams = new URLSearchParams(window.location.search)
-    const hasKeyParam = !!urlParams.get('key')
-    const validated = isShowValidated()
-    const shouldShowAll = hasKeyParam || validated
-
-    if (!shouldShowAll) {
-      result = result.filter(cate => {
-        const cateShow = cate.show !== undefined ? cate.show : 1
-        if (cateShow === 0) return false
-
-        cate.list = cate.list.filter(tool => {
-          const toolShow = tool.show !== undefined ? tool.show : 1
-          return toolShow !== 0
-        })
-
-        return cate.list.length > 0
-      })
-    }
-
-    return result
-  } catch (error) {
-    console.error('获取工具分类失败:', error)
-
-    const urlParams = new URLSearchParams(window.location.search)
-    const hasKeyParam = !!urlParams.get('key')
-    const validated = isShowValidated()
-    const shouldShowAll = hasKeyParam || validated
-
-    if (!shouldShowAll) {
-      return localToolsCate.filter(cate => {
-        const cateShow = cate.show !== undefined ? cate.show : 1
-        if (cateShow === 0) return false
-
-        cate.list = cate.list.filter(tool => {
-          const toolShow = tool.show !== undefined ? tool.show : 1
-          return toolShow !== 0
-        })
-
-        return cate.list.length > 0
-      })
-    }
-
-    return localToolsCate
-  }
+  return filteredLocal
 }
 
 // 本地数据备份，用于API不可用时的回退

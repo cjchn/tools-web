@@ -40,6 +40,9 @@ export const useToolsStore = defineStore('tools', {
       //发送请求
       this.cates = await getToolsCate()
     },
+    updateCates(cates: any[]) {
+      this.cates = cates
+    },
     //获取ip
     async getIp(data: IpReqData) {
       const result: any = await getIp(data)
