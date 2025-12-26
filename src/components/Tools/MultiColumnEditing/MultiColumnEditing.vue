@@ -6,8 +6,6 @@ import { copy as copyUtil } from '@/utils/string.ts';
 import { Codemirror } from "vue-codemirror";
 import { ElMessage } from 'element-plus'
 
-declare const chrome: any;
-
 const STORAGE_KEY = 'multi-column-editing-content'
 const TIME_KEY = 'multi-column-editing-time'
 const CACHE_EXPIRE_HOURS = 1
