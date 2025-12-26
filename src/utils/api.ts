@@ -10,6 +10,11 @@ let routesDataLoaded = false
 // Show验证通过状态（API返回true时标记）
 let showValidated = false
 
+/**
+ * 判断Show验证是否已通过
+ * 用于控制隐藏工具的显示权限
+ * @returns true-验证通过，显示所有工具；false-未验证，隐藏标记为show:0的工具
+ */
 export function isShowValidated(): boolean {
   return showValidated
 }
@@ -254,25 +259,32 @@ export async function fetchShow(code: string, remark: string = 'tool_site_dynami
 
 /**
  * 获取路由配置（带缓存）
+ * 从API获取动态路由配置，支持缓存避免重复请求
+ * @returns Promise路由响应数据，格式: { code: 0, data: [...] }
+ *         如果API失败或已缓存，返回缓存数据或本地回退数据
  */
 export async function fetchRoutes(): Promise<any> {
+  // 如果已有缓存数据，直接返回缓存
   if (routesDataLoaded && cachedRoutesData) {
     return cachedRoutesData
   }
   
   try {
+    // 调用API获取路由数据，接口地址: /open/tool/site/bookmarks
     const response = await request<any>(import.meta.env.VITE_ROUTES_API_ENDPOINT || '/open/tool/site/bookmarks', {
       method: 'GET'
     })
 
     // API返回格式: { code: 0, data: [...] }
     if (response.code === 0 && response.data && Array.isArray(response.data)) {
+      // 缓存有效的路由数据
       cachedRoutesData = response
       routesDataLoaded = true
     }
     
     return response
   } catch (error) {
+    // API请求失败时返回本地回退数据
     return localRoutesData
   }
 }

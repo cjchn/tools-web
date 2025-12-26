@@ -18,26 +18,46 @@ const router = createRouter({
   },
 })
 
-// 动态加载路由配置
+/**
+ * 动态加载路由配置
+ * 根据API返回的工具数据，动态注册路由到vue-router
+ * 
+ * 工作流程:
+ * 1. 从缓存获取API返回的路由数据
+ * 2. 解析数据生成路由配置对象
+ * 3. 过滤掉已存在的路由（避免重复注册）
+ * 4. 将新路由添加到router
+ * 
+ * 路由数据格式:
+ * {
+ *   code: '路由代码',      // 用于生成路径 /code
+ *   title: '工具标题',     // 用于meta.title
+ *   url: '外部链接',       // 如果有值，使用beforeEnter打开外部链接
+ * }
+ */
 export function loadDynamicRoutes() {
+  // 从缓存获取API返回的路由数据
   const response = getCachedRoutesData()
 
   // API返回格式: { code: 0, data: [...] }
   if (response && response.code === 0 && response.data && Array.isArray(response.data)) {
+    // 获取已存在的路由名称和路径集合，用于去重
     const existingRoutes = router.getRoutes()
     const existingRouteNames = new Set(existingRoutes.map(route => route.name))
     const existingRoutePaths = new Set(existingRoutes.map(route => route.path))
 
+    // 将API数据转换为路由配置对象
     const dynamicRoutes = response.data.map((item: any) => {
       const code = item.code
       const url = item.url
 
       const routerConfig: any = {
-        path: `/${code}`,
-        name: code,
-        meta: { title: item.title }
+        path: `/${code}`,           // 路径格式: /code
+        name: code,                 // 路由名称
+        meta: { title: item.title } // 元信息
       }
 
+      // 如果有url字段，添加导航守卫打开外部链接
       if (url) {
         routerConfig.beforeEnter = () => {
           window.open(url, '_blank')
@@ -48,6 +68,7 @@ export function loadDynamicRoutes() {
       return routerConfig
     })
 
+    // 过滤出需要新增的路由（不重复的）
     const newRoutes = dynamicRoutes.filter((route: any) => {
       const hasNameOrPath = route.name || route.path
       const existsByName = route.name && existingRouteNames.has(route.name)
@@ -56,13 +77,10 @@ export function loadDynamicRoutes() {
       return hasNameOrPath && !existsByName && !existsByPath
     })
 
+    // 动态添加新路由到router
     newRoutes.forEach((route: any) => {
       router.addRoute(route)
     })
-
-    // if (newRoutes.length > 0) {
-    //   console.log(`动态路由加载成功，添加了${newRoutes.length}个新路由`)
-    // }
   }
 }
 
