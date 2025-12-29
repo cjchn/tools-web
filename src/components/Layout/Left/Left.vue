@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // import { Tools } from '@element-plus/icons-vue'
-import { onMounted, ref, reactive } from 'vue';
+import { onMounted, ref, reactive, watch, nextTick } from 'vue';
 import { useToolsStore } from '@/store/modules/tools'
 import { useRouter, useRoute } from "vue-router"
 const router = useRouter()
@@ -14,6 +14,14 @@ const defaultActive = ref('')
 const defaultOpeneds = ['cate']
 //store
 const toolsStore = useToolsStore()
+//菜单项 refs
+const menuItemRefs = ref<Record<string, any>>({})
+
+const setMenuItemRef = (id: string, el: any) => {
+  if (el) {
+    menuItemRefs.value[id] = el
+  }
+}
 //获取分类
 const getToolCates = async () => {
   try {
@@ -53,9 +61,41 @@ const gotoAbout = () => {
   router.push('about')
 }
 
+const scrollActiveIntoView = () => {
+  const activeId = defaultActive.value
+  if (!activeId) return
+  
+  let activeEl = menuItemRefs.value[activeId]
+  if (!activeEl) return
+
+  if (activeEl.$el) {
+    activeEl = activeEl.$el
+  }
+
+  const scrollWrap = document.querySelector('.el-scrollbar > .el-scrollbar__wrap')
+  if (!scrollWrap) return
+
+  const containerRect = scrollWrap.getBoundingClientRect()
+  const itemRect = activeEl.getBoundingClientRect()
+
+  if (itemRect.top < containerRect.top || itemRect.bottom > containerRect.bottom) {
+    scrollWrap.scrollTo({
+      top: activeEl.offsetTop - 100,
+      behavior: 'smooth'
+    })
+  }
+}
+
 onMounted(async () => {
   await getToolCates()
-
+  watch(() => toolsStore.activeCateId, (newId) => {
+    if (newId) {
+      defaultActive.value = newId
+      nextTick(() => {
+        scrollActiveIntoView()
+      })
+    }
+  }, { immediate: true })
 })
 </script>
 
@@ -93,6 +133,7 @@ onMounted(async () => {
             </template>
             <el-menu-item-group>
                 <el-menu-item
+                  :ref="(el) => setMenuItemRef(item.id.toString(), el as HTMLElement)"
                   @click="gotoAnchor('cate_' + item.id)"
                   :index="item.id.toString()"
                   v-for="(item,index) in toolsStore.cates"

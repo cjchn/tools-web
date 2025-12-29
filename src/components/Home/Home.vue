@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue';
+import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from "vue-router"
 // import { Star } from '@element-plus/icons-vue'
 import { useToolsStore } from '@/store/modules/tools'
@@ -16,6 +16,22 @@ const route = useRoute()
 //   }
 // }
 
+const checkScroll = () => {
+  const cateElements = toolsStore.cates.map((cate: any) => {
+    const el = document.getElementById('cate_' + cate.id)
+    return { id: cate.id, el }
+  }).filter(item => item.el)
+
+  for (let i = cateElements.length - 1; i >= 0; i--) {
+    const { id, el } = cateElements[i]
+    if (!el) continue
+    const rect = el.getBoundingClientRect()
+    if (rect.top <= 150) {
+      toolsStore.setActiveCateId(id.toString())
+      break
+    }
+  }
+}
 
 onMounted(() => {
   // getToolsCate()
@@ -24,6 +40,13 @@ onMounted(() => {
   } else {//其他位置跳转过来不需要定位的则定位到顶部
       document?.querySelector('#collect')?.scrollIntoView()
   }
+  
+  window.addEventListener('scroll', checkScroll)
+  checkScroll()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', checkScroll)
 })
 </script>
 

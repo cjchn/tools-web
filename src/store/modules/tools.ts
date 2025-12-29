@@ -18,6 +18,7 @@ export const useToolsStore = defineStore('tools', {
     webInfo: {} as WebInfo,
     collect: [] as ToolsInfo[],
     collectIds: [] as number[],
+    activeCateId: '' as string,
   }),
   //方法
   actions: {
@@ -42,6 +43,9 @@ export const useToolsStore = defineStore('tools', {
     },
     updateCates(cates: any[]) {
       this.cates = cates
+    },
+    setActiveCateId(id: string) {
+      this.activeCateId = id
     },
     //获取ip
     async getIp(data: IpReqData) {
