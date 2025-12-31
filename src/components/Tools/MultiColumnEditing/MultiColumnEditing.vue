@@ -66,6 +66,10 @@ const info = reactive({
   parseErr: '',
   splitSeparator: '',
   lastSaveTime: '',
+  numberFormat: '$n.',
+  startNumber: 1,
+  numberInterval: 1,
+  enableLeadingZeros: false,
 })
 
 onMounted(() => {
@@ -131,9 +135,29 @@ const addNumbers = () => {
   }
 
   const lines = info.inputText.split('\n')
-  const numberedLines = lines.map((line, index) => {
-    // 不为空行添加序号
-    return line.trim() ? `${index + 1}. ${line}` : line
+  const nonEmptyLines = lines.filter(line => line.trim())
+  const totalLines = nonEmptyLines.length
+
+  // 计算最大数字的位数，用于前置补0
+  const maxNumber = info.startNumber + (totalLines - 1) * info.numberInterval
+  const maxDigits = maxNumber.toString().length
+
+  let currentNumber = info.startNumber
+  const numberedLines = lines.map(line => {
+    if (!line.trim()) return line
+
+    // 生成序号
+    let numberStr = currentNumber.toString()
+    // 前置补0 - 仅当启用时
+    if (info.enableLeadingZeros && maxDigits > 1) {
+      numberStr = numberStr.padStart(maxDigits, '0')
+    }
+
+    // 应用序号格式
+    let formattedNumber = info.numberFormat.replace('$n', numberStr)
+
+    currentNumber += info.numberInterval
+    return `${formattedNumber} ${line}`
   })
 
   info.inputText = numberedLines.join('\n')
@@ -153,16 +177,20 @@ const removeNumbers = () => {
 
     let processedLine = line
 
-    // 移除各种序号格式：
-    // 1.xx 或 1. xx (数字序号)
-    // 一.xx 或 一. xx (中文数字带点序号)
-    // 一xx (中文数字序号)
-    // 1、xx 或 1、 xx (数字+顿号序号)
-    // 一、xx 或 一、 xx (中文数字+顿号序号)
-    processedLine = processedLine.replace(/^\d+\.\s*/, '')
+    // 移除各种序号格式，包括带前置补0的情况
+    // 匹配所有支持的序号格式
+    processedLine = processedLine.replace(/^\d+\.\s*/, '') // n.
+    processedLine = processedLine.replace(/^\d+\s+/, '') // n
+    processedLine = processedLine.replace(/^\d+,\s*/, '') // n,
+    processedLine = processedLine.replace(/^\d+、\s*/, '') // n、
+    processedLine = processedLine.replace(/^\(\d+\)\s*/, '') // (n)
+    processedLine = processedLine.replace(/^\[\d+\]\s*/, '') // [n]
+    processedLine = processedLine.replace(/^\d+#\s*/, '') // n#
+    processedLine = processedLine.replace(/^\d+-\s*/, '') // n-
+
+    // 中文序号格式保持不变
     processedLine = processedLine.replace(/^[一二三四五六七八九十]+\.\s*/, '')
     processedLine = processedLine.replace(/^[一二三四五六七八九十]+/, '')
-    processedLine = processedLine.replace(/^\d+、\s*/, '')
     processedLine = processedLine.replace(/^[一二三四五六七八九十]+、\s*/, '')
 
     return processedLine.trim()
@@ -313,17 +341,35 @@ const splitBySeparator = () => {
       </div>
 
       <!-- 操作按钮 - 序号大小写 -->
-      <div class="mt-1 mb-2 flex items-center gap-2">
+      <div class="mt-1 mb-2 flex flex-wrap items-center gap-2">
         <span class="text-gray-500 font-medium">序号/大小写</span>
-        <el-button type="primary" @click="addNumbers" title="abc\ndef → 1. abc\n2. def">添加序号</el-button>
+        <div class="flex items-center gap-2">
+          <span class="text-gray-700">格式：</span>
+          <el-select v-model="info.numberFormat" placeholder="选择序号格式" style="width: 120px" title="选择序号的显示格式">
+            <el-option value="$n." label="n."></el-option>
+            <el-option value="$n " label="n "></el-option>
+            <el-option value="$n," label="n,"></el-option>
+            <el-option value="$n、" label="n、"></el-option>
+            <el-option value="($n)" label="(n)"></el-option>
+            <el-option value="[$n]" label="[n]"></el-option>
+            <el-option value="$n#" label="n#"></el-option>
+            <el-option value="$n-" label="n-"></el-option>
+          </el-select>
+          <span class="text-gray-700">开始：</span>
+          <el-input-number v-model="info.startNumber" :min="1" :step="1" style="width: 120px" placeholder="开始数字" title="序号的起始数值，默认为1" />
+          <span class="text-gray-700">间隔：</span>
+          <el-input-number v-model="info.numberInterval" :min="1" :step="1" style="width: 120px" placeholder="数字间隔" title="序号之间的差值，默认为1" />
+          <el-checkbox v-model="info.enableLeadingZeros" label="前置补0" title="为序号添加前置0，使其位数统一" />
+        </div>
+        <el-button type="primary" @click="addNumbers" title="abc → 1. abc">添加序号</el-button>
         <el-button type="primary" @click="removeNumbers" title="1. abc → abc">清除序号</el-button>
-        <el-button type="primary" @click="toUpperCase" title="hello world → HELLO WORLD">转大写</el-button>
-        <el-button type="primary" @click="toLowerCase" title="HELLO WORLD → hello world">转小写</el-button>
       </div>
 
       <!-- 操作按钮 - 英文处理 -->
       <div class="mt-1 mb-6 flex items-center gap-2">
         <span class="text-gray-500 font-medium">英文处理</span>
+        <el-button type="primary" @click="toUpperCase" title="hello world → HELLO WORLD">转大写</el-button>
+        <el-button type="primary" @click="toLowerCase" title="HELLO WORLD → hello world">转小写</el-button>
         <el-button type="primary" @click="toSnakeCase" title="helloWorld → hello_world">转_分割</el-button>
         <el-button type="primary" @click="toSpaceCase" title="helloWorld → hello world">转空格</el-button>
         <el-input
@@ -346,7 +392,7 @@ const splitBySeparator = () => {
     <ToolDetail title="描述">
       <el-text>
         1. alt+左键实现多列编辑<br/>
-        2. 按钮title有提示
+        2. 鼠标放到控件上面有提示
       </el-text>
     </ToolDetail>
 
