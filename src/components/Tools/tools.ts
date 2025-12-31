@@ -270,6 +270,15 @@ const localToolsCate: ToolCate[] = [
           cateId: 0,
           cate: '开发运维',
         },
+        {
+          id: 15,
+          title: 'MyBatis SQL 解析器',
+          logo: '/images/logo/CssFormat.png',
+          desc: 'MyBatis SQL 解析器，用于解析和转换 MyBatis 映射文件中的 SQL 语句',
+          url: '/mybatissqlparser/',
+          cateId: 0,
+          cate: '开发运维',
+        },
       ]
     },
     {

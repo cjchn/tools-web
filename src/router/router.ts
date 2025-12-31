@@ -432,6 +432,16 @@ export const constantRoute = [
     }
   },
   {
+    path: '/mybatissqlparser',
+    component: () => import('@/components/Tools/MyBatisSqlParser/MyBatisSqlParser.vue'),
+    name: 'MyBatisSqlParser',
+    meta: {
+      title: "MyBatis SQL 解析器",
+      keywords: 'MyBatis,SQL解析器,SQL转换',
+      description: 'MyBatis SQL 解析器，用于解析和转换 MyBatis 映射文件中的 SQL 语句',
+    }
+  },
+  {
     path: '/multicolumnediting',
     component: () => import('@/components/Tools/MultiColumnEditing/MultiColumnEditing.vue'),
     name: 'MultiColumnEditing',
