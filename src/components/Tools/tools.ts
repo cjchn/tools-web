@@ -177,7 +177,7 @@ export const localToolsCate: ToolCate[] = [
         {
           id: 1,
           title: '个人',
-          logo: 'http://oocj.cn/images/icon/logo.png',
+          logo: 'https://images.weserv.nl/?url=http://oocj.cn/images/icon/favicon.ico',
           desc: '个人小站',
           url: '/our/',
           show: 0,
