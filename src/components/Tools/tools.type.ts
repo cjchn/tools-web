@@ -12,7 +12,8 @@ export interface ToolsInfo {
   desc: string,
   url: string,
   cate: string,
-  show?: number
+  show?: number,
+  sortOrder?: number
 }
 
 //tools cate

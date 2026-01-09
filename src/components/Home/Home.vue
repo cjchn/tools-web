@@ -1,13 +1,33 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from "vue-router"
-// import { Star } from '@element-plus/icons-vue'
+import { Star } from '@element-plus/icons-vue'
 import { useToolsStore } from '@/store/modules/tools'
-// import { ElMessage } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { useRoute } from "vue-router"
+import ControlMarker from '@/components/Layout/ControlMarker/ControlMarker.vue';
 //store
 const toolsStore = useToolsStore()
 const route = useRoute()
+
+// 收藏工具
+const collect = (toolId: number) => {
+  const index = toolsStore.collectIds.indexOf(toolId)
+  if (index > -1) {
+    // 取消收藏
+    toolsStore.collectIds.splice(index, 1)
+    toolsStore.collect = toolsStore.collect.filter(item => item.id !== toolId)
+    ElMessage.success('已取消收藏')
+  } else {
+    // 添加收藏
+    const tool = toolsStore.list.find(item => item.id === toolId)
+    if (tool) {
+      toolsStore.collectIds.push(toolId)
+      toolsStore.collect.push(tool)
+      ElMessage.success('已添加到收藏')
+    }
+  }
+}
 // const getToolsCate = async () => {
 //   try {
 //     await toolsStore.getToolCate()
@@ -40,7 +60,7 @@ onMounted(() => {
   } else {//其他位置跳转过来不需要定位的则定位到顶部
       document?.querySelector('#collect')?.scrollIntoView()
   }
-  
+
   window.addEventListener('scroll', checkScroll)
   checkScroll()
 })
@@ -62,14 +82,16 @@ onUnmounted(() => {
       <div class="flex justify-between flex-wrap self-card-div c-xs:ml-0" :gutter="10">
           <router-link v-for="(item, index) in cate.list" :key="index" :to="item.url" class="flex flex-col mt-5 border-solid rounded-2xl border-gray w-[24%] p-2 bg-white hover:shadow-md c-xs:w-[99.5%] c-md:w-[24%] c-sm:w-[32%] p-5 hover:-translate-y-2 duration-300">
             <div class="flex items-center border-b pb-2">
-              <el-image :src="item.logo" class="w-10 h-10 min-h-[2.5rem] min-w-[2.5rem] rounded-full"></el-image>
+              <el-image :src="item.logo" class="w-10 h-10 min-h-[2.5rem] min-w-[2.5rem] rounded-full" lazy></el-image>
               <div class="flex flex-col ml-2 w-full">
                 <div class="flex">
                   <div class="font-semibold text-lg line-clamp-1">{{ item.title }}</div>
                 </div>
                 <div class="flex justify-between">
                   <el-text size="small">{{ item.cate }}</el-text>
-                  <!-- <el-button :icon="Star" circle size="small" @click.prevent="collect(item.id)" type="warning" :plain="!toolsStore.collectIds.includes(item.id)"/> -->
+                  <div class="flex space-x-2">
+                    <ControlMarker :controlId="item.id" :controlName="item.title" :url="item.url" />
+                  </div>
                 </div>
               </div>
             </div>

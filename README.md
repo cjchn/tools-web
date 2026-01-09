@@ -86,3 +86,24 @@ VITE_SHOW_API_ENDPOINT = 'http://localhost:8085/open/sys/dicts/code'
 | url | string | 功能链接 |
 | isShow | number | 是否显示，1显示，0隐藏，其他默认显示 |
 更多处理逻辑可以查看[src/api/tools.ts](src/api/tools.ts).getToolsCate
+
+### 分类方式
+
+分类按照数字前缀进行排序，具体分类方式如下：
+
+| 数字前缀 | 分类名称 |
+|---------|------|
+| 0 | 自用   |
+| 1 | 搜索   |
+| 2 | 学习   |
+| 3 | 文本   |
+| 4 | 图片   |
+| 5 | 音乐   |
+| 6 | 视频   |
+| 7 | 建站   |
+| 8 | 金融   |
+| 9 | 其他   |
+
+### 本地工具配置
+
+本地工具配置在[src/components/Tools/tools.ts](src/components/Tools/tools.ts)文件中，包含了所有工具的详细信息和分类。

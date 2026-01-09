@@ -5,6 +5,7 @@ import { useRoute } from 'vue-router'
 import { useToolsStore } from '@/store/modules/tools'
 // import { ElMessageBox } from 'element-plus'
 import {rtrim} from '@/utils/string'
+import ControlMarker from '../ControlMarker/ControlMarker.vue';
 const props = defineProps({
   title: String,
   id: Number
@@ -40,7 +41,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex justify-between rounded-2xl bg-white p-4 mt-5 mb-5">
+  <div class="flex justify-between items-center rounded-2xl bg-white p-4 mt-5 mb-5">
     <!-- <div class="text-gray-600">
       <div class="flex">
         <RouterLink to="/" class="flex items-center">
@@ -53,6 +54,7 @@ onMounted(() => {
     <div class="text-xl">
       {{ props.title }}
     </div>
+    <ControlMarker :controlId="id || route.path" :controlName="title" :url="route.path" />
   </div>
 </template>
 

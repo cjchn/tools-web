@@ -475,7 +475,6 @@ export const constantRoute = [
   {
     name: 'our',
     path: '/our',
-    component: () => import('@/components/404/404.vue'),
     // 路由导航守卫：在进入路由前执行重定向操作
     beforeEnter: () => {
       // 打开新窗口跳转到外部云便签服务地址
