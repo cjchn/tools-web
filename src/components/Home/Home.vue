@@ -1,33 +1,12 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
 import { RouterLink } from "vue-router"
-import { Star } from '@element-plus/icons-vue'
 import { useToolsStore } from '@/store/modules/tools'
-import { ElMessage } from 'element-plus'
 import { useRoute } from "vue-router"
 import ControlMarker from '@/components/Layout/ControlMarker/ControlMarker.vue';
 //store
 const toolsStore = useToolsStore()
 const route = useRoute()
-
-// 收藏工具
-const collect = (toolId: number) => {
-  const index = toolsStore.collectIds.indexOf(toolId)
-  if (index > -1) {
-    // 取消收藏
-    toolsStore.collectIds.splice(index, 1)
-    toolsStore.collect = toolsStore.collect.filter(item => item.id !== toolId)
-    ElMessage.success('已取消收藏')
-  } else {
-    // 添加收藏
-    const tool = toolsStore.list.find(item => item.id === toolId)
-    if (tool) {
-      toolsStore.collectIds.push(toolId)
-      toolsStore.collect.push(tool)
-      ElMessage.success('已添加到收藏')
-    }
-  }
-}
 // const getToolsCate = async () => {
 //   try {
 //     await toolsStore.getToolCate()

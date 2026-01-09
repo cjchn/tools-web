@@ -481,7 +481,9 @@ export const constantRoute = [
       window.open('http://oocj.cn/', '_blank');
       // 返回false阻止默认导航，避免原窗口也跳转
       return false; // 阻止默认导航
-    }
+    },
+    // 添加空的children数组以解决类型错误
+    children: []
   },
   // 关于
   {
