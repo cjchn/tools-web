@@ -4,10 +4,53 @@ import Left from '@/components/Layout/Left/Left.vue'
 import Floor from '@/components/Layout/Floor/Floor.vue'
 // import Right from '@/components/Layout/Right/Right.vue'
 import { useComponentStore } from '@/store/modules/component'
+import { onMounted, onUnmounted } from 'vue'
 
 //store
 const componentStore = useComponentStore()
 
+// 触摸事件相关变量
+let touchStartX = 0
+let touchEndX = 0
+const minSwipeDistance = 50 // 最小滑动距离
+
+// 触摸开始事件
+const handleTouchStart = (event: TouchEvent) => {
+  touchStartX = event.changedTouches[0].screenX
+}
+
+// 触摸结束事件
+const handleTouchEnd = (event: TouchEvent) => {
+  touchEndX = event.changedTouches[0].screenX
+  handleSwipe()
+}
+
+// 处理滑动逻辑
+const handleSwipe = () => {
+  const swipeDistance = touchEndX - touchStartX
+  
+  // 右滑，显示左侧抽屉
+  if (swipeDistance > minSwipeDistance) {
+    componentStore.setleftComDrawerStatus(true)
+  }
+  
+  // 左滑，隐藏左侧抽屉
+  if (swipeDistance < -minSwipeDistance) {
+    componentStore.setleftComDrawerStatus(false)
+  }
+}
+
+// 添加触摸事件监听器
+onMounted(() => {
+  document.addEventListener('touchstart', handleTouchStart)
+  document.addEventListener('touchend', handleTouchEnd)
+})
+
+// 移除触摸事件监听器
+onUnmounted(() => {
+  document.removeEventListener('touchstart', handleTouchStart)
+  document.removeEventListener('touchend', handleTouchEnd)
+})
 </script>
 
 <template>
