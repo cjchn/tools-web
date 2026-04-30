@@ -50,7 +50,7 @@
     "tui-image-editor": "^3.15.3",
     "uuid": "^9.0.1",
     "v-code-diff": "^1.8.0",
-    "vite-plugin-seo-prerender": "^0.5.0",
+    
     "vue": "^3.3.10",
     "vue-clipboard3": "^2.0.0",
     "vue-codemirror": "^6.1.1",

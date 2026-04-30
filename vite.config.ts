@@ -15,17 +15,6 @@ export default defineConfig(({command, mode}) => {
     }),
   ]
   
-  // 只在开发服务器模式下使用 seoperender 插件（避免 Jenkins 构建需要 Chrome）
-  // 只有 command === 'serve' 时才是开发服务器模式
-  if (command === 'serve') {
-    try {
-      const {seoperender} = require("./ssr.config")
-      plugins.push(seoperender())
-    } catch (e) {
-      console.warn('seoperender plugin not available in this environment')
-    }
-  }
-  
   return {
     define: {  
       'process.env.NODE_ENV': JSON.stringify('production'),
