@@ -4,10 +4,9 @@ import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import path from 'path'
 
 // https://vitejs.dev/config/
-export default defineConfig(async ({command, mode}) => {
+export default defineConfig(({command, mode}) => {
   let env = loadEnv(mode, process.cwd())
   
-  // 根据命令决定是否使用 seoperender 插件
   const plugins = [
     vue(),
     createSvgIconsPlugin({
@@ -16,10 +15,15 @@ export default defineConfig(async ({command, mode}) => {
     }),
   ]
   
-  // 只在开发模式下使用 seoperender 插件（避免 Jenkins 构建需要 Chrome）
+  // 只在开发服务器模式下使用 seoperender 插件（避免 Jenkins 构建需要 Chrome）
+  // 只有 command === 'serve' 时才是开发服务器模式
   if (command === 'serve') {
-    const {seoperender} = await import("./ssr.config")
-    plugins.push(seoperender())
+    try {
+      const {seoperender} = require("./ssr.config")
+      plugins.push(seoperender())
+    } catch (e) {
+      console.warn('seoperender plugin not available in this environment')
+    }
   }
   
   return {
