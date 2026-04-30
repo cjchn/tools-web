@@ -2,28 +2,34 @@ import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import path from 'path'
-import {seoperender} from "./ssr.config";
 
 // https://vitejs.dev/config/
-export default defineConfig(({command, mode}) => {
+export default defineConfig(async ({command, mode}) => {
   let env = loadEnv(mode, process.cwd())
+  
+  // 根据命令决定是否使用 seoperender 插件
+  const plugins = [
+    vue(),
+    createSvgIconsPlugin({
+      iconDirs: [path.resolve(process.cwd(), 'src/assets/icons')],
+      symbolId: 'icon-[dir]-[name]',
+    }),
+  ]
+  
+  // 只在开发模式下使用 seoperender 插件（避免 Jenkins 构建需要 Chrome）
+  if (command === 'serve') {
+    const {seoperender} = await import("./ssr.config")
+    plugins.push(seoperender())
+  }
+  
   return {
     define: {  
       'process.env.NODE_ENV': JSON.stringify('production')  
     },
-    plugins: [
-      vue(),
-      createSvgIconsPlugin({
-        // Specify the icon folder to be cached
-        iconDirs: [path.resolve(process.cwd(), 'src/assets/icons')],
-        // Specify symbolId format
-        symbolId: 'icon-[dir]-[name]',
-      }),
-      seoperender()
-    ],
+    plugins,
     resolve: {
       alias: {
-        "@": path.resolve("./src")  //相对路径别名配置， 使用@替代src
+        "@": path.resolve("./src")
       }
     },
     server: {
@@ -32,14 +38,24 @@ export default defineConfig(({command, mode}) => {
         [env.VITE_APP_BASE_API] : {
           target: env.VITE_SERVE,
           changeOrigin: true,
-          // bypass(req, res, options) {
-          //   const proxyUrl = new URL(options.rewrite(req.url) || '', (options.target) as string)?.href || ''
-          //   req.headers['x-req-proxyUrl'] = proxyUrl;
-          //   res.setHeader("x-res-proxyUrl", proxyUrl)
-          // }
         },
-        
       }
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'xlsx': ['xlsx'],
+            'codemirror': ['codemirror', '@codemirror/autocomplete', '@codemirror/commands', '@codemirror/lang-javascript', '@codemirror/lang-json', '@codemirror/language', '@codemirror/lint', '@codemirror/search', '@codemirror/state', '@codemirror/theme-one-dark', '@codemirror/view'],
+            'echarts': ['echarts'],
+            'element-plus': ['element-plus', '@element-plus/icons-vue'],
+            'wangeditor': ['@wangeditor/editor', '@wangeditor/editor-for-vue'],
+            'tui-image-editor': ['tui-image-editor'],
+            'markdown': ['@kangc/v-md-editor', 'highlight.js', 'prismjs'],
+          }
+        }
+      },
+      chunkSizeWarningLimit: 1500
     }
   }
 })
