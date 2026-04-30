@@ -29,9 +29,11 @@
       "@/*": ["src/*"]
     },
     "allowJs": true,
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "noImplicitReturns": false,
+    "ignoreDeprecations": "5.0"
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.ts*", "src/**/*.vue", "src/types/**/*.d.ts"],
-  "exclude": ["node_modules/**/*"],
+  "exclude": ["node_modules"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

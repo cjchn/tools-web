@@ -4,7 +4,13 @@
     "skipLibCheck": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": false,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "types": ["element-plus/global"]
   },
-  "include": ["vite.config.ts", "./ssr.config.ts"]
+  "include": ["vite.config.ts", "./ssr.config.ts", "src/types/**/*.d.ts", "src/vite-env.d.ts"]
 }
