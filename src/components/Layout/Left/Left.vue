@@ -6,7 +6,7 @@ import { useRouter, useRoute } from "vue-router"
 const router = useRouter()
 const route = useRoute()
 
-const appName = ref(import.meta.env.VITE_APP_TITLE || '工具坊')
+const appName = ref(import.meta.env.VITE_APP_TITLE || '在线工具')
 const appNet = ref(import.meta.env.VITE_APP_DESC || '')
 //菜单选中
 const defaultActive = ref('')

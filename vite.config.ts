@@ -28,7 +28,9 @@ export default defineConfig(({command, mode}) => {
   
   return {
     define: {  
-      'process.env.NODE_ENV': JSON.stringify('production')  
+      'process.env.NODE_ENV': JSON.stringify('production'),
+      'import.meta.env.VITE_APP_TITLE': JSON.stringify(env.VITE_APP_TITLE || '在线工具'),
+      'import.meta.env.VITE_APP_DESC': JSON.stringify(env.VITE_APP_DESC || '')
     },
     plugins,
     resolve: {
