@@ -31,7 +31,7 @@
     "allowJs": true,
     "noImplicitAny": false
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.ts*", "src/**/*.vue"],
-  "exclude": ["node_modules/qrcode-vue3"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.ts*", "src/**/*.vue", "src/types/**/*.d.ts"],
+  "exclude": ["node_modules/**/*"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
